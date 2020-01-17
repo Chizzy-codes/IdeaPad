@@ -1,0 +1,13 @@
+IdeaPad - Notepad for ideas
+
+This app was made to give its users a one-stop, clearly defined location for storing ideas.
+
+Please always save your new and edited ideas before closing.
+
+log out and log back in to effect visual changes.
+
+Made by Chizurum Olorondu.
+
+Powered by python.
+
+Patent Pending!!!

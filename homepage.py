@@ -369,7 +369,7 @@ class HomePage(Toplevel):
         except:
             tkinter.messagebox.showinfo("Not Found", "Sorry, no idea with the name you entered exists")
 
-        connection.commit()
+
         connection.close()
 
         self.editidea()

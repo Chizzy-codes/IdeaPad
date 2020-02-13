@@ -6,11 +6,9 @@ from datetime import datetime
 from tkinter import *
 
 
-
-
 class HomePage(Toplevel):
-    def __init__(self, original, user):
-        self.original_frame = original
+    def __init__(self, _id, user):
+        self.id = _id
         self.username = user
         Toplevel.__init__(self)
         self.title("IdealPad")
@@ -42,7 +40,7 @@ class HomePage(Toplevel):
 
         self.filetab = Menu(self.menu)
         self.menu.add_cascade(label="File", menu=self.filetab)
-        self.filetab.add_command(label="New", command=self.add_new)
+        self.filetab.add_command(label="New", command=self.addnew)
         self.filetab.add_command(label="Edit", command=self.edit)
         self.filetab.add_separator()
         self.filetab.add_command(label="Exit", command=self.exit)
@@ -62,7 +60,7 @@ class HomePage(Toplevel):
         self.wlabel.pack(side=TOP, padx=60, pady=10, fill=X)
 
         self.new_entry = Button(self.uframe, text="New", width=20, font=("normal", 15, "normal"), fg="white",
-                                bg="grey", command=self.add_new)
+                                bg="grey", command=self.addnew)
         self.new_entry.pack(side=LEFT, padx=60, pady=30)
 
         self.logoutbtn = Button(self.uframe, text="Logout", width=20, font=("normal", 15, "normal"), fg="white",
@@ -89,7 +87,7 @@ class HomePage(Toplevel):
         self.deletebtn.pack(side=LEFT, padx=60, pady=5)
 
         self.viewbtn = Button(self.bframe, text="View", width=10, font=("normal", 15, "normal"), fg="white", bg="grey",
-                              command=self.view)
+                              command=self.viewidea)
         self.viewbtn.pack(side=LEFT, padx=60, pady=5)
 
     ###################################################################################################################
@@ -98,11 +96,10 @@ class HomePage(Toplevel):
         self.idealist.delete(0, END)
         connection = sqlite3.connect("data.db")
         cursor = connection.cursor()
-        data = cursor.execute(f"SELECT ideaname, ideatime FROM ideas WHERE user='{self.username}'")
+        data = cursor.execute(f"SELECT ideaname, ideatime FROM ideas WHERE id='{self.id}'")
 
         for row in data:
             self.idealist.insert(END, f"{row[0]} | {row[1]}")
-        connection.commit()
         connection.close()
 
     def upgrade(self):
@@ -121,7 +118,6 @@ class HomePage(Toplevel):
     def tbinsert(self):
         con = sqlite3.connect("data.db")
         cur = con.cursor()
-
 
         cur.execute(f"SELECT ideatext FROM ideas WHERE user='{self.username}' AND ideatime='{self.ideatime}'")
         data = cur.fetchall()
@@ -171,19 +167,59 @@ class HomePage(Toplevel):
         finally:
             self.update_listbox()
 
-
-
     def cursorselect(self, event):
         self.value = self.idealist.get(self.idealist.curselection())
         self.two = self.value.split("|")
         self.ideaname = self.two[0]
         self.ideatime = self.two[1]
 
+    ###################################################################################################################
+
+    def viewidea(self):
+        view = Toplevel()
+        view.title("View Idea")
+        view.geometry("720x720")
+        view.protocol("WM_DELETE_WINDOW", self.on_exit)
+
+        view.frame = Frame(view)
+        view.frame.pack()
+
+        view.uframe = Frame(view.frame)
+        view.uframe.pack(side=TOP, padx=10, pady=10)
+
+        view.mframe = Frame(view.frame)
+        view.mframe.pack(side=TOP, padx=10, pady=10)
+
+        view.bframe = Frame(view.frame)
+        view.bframe.pack(side=TOP, padx=10, pady=10)
+
+        connect = sqlite3.connect("data.")
+        curs = connect.cursor()
+
+        data = curs.execute(f"SELECT ideatext FROM ideas WHERE user='{self.username}' AND ideatime='{self.ideatime}'")
+
+        name = Label(view.uframe, text=f"{self.ideaname}", font=("verdana", 15, "normal"), anchor=W)
+        name.pack(side=LEFT, fill=X, padx=60, pady=10)
+
+        for row in data:
+            view.text = row[0]
+        textview = Message(view.mframe, text=f"{view.text}", font=("verdana", 15, "normal"))
+        textview.pack(side=TOP, fill=X, padx=60, pady=60)
+        connect.commit()
+        connect.close()
+
+        self.value = ""
+        self.two = ""
+        self.ideaname = ""
+        self.ideatime = ""
+
+        close = Button(view.bframe, width=10, text="Close", font=("normal", 15, "normal"), bg="grey", fg="white",
+                       command=lambda: view.destroy())
+        close.pack(side=LEFT, padx=60, pady=10)
 
     ###################################################################################################################
 
     def editidea(self):
-
         edit = Toplevel()
         edit.title("Edit Idea")
         edit.geometry("720x720")
@@ -225,7 +261,7 @@ class HomePage(Toplevel):
 
     ###################################################################################################################
 
-    def add_new(self):
+    def addnew(self):
         add = Toplevel()
 
         add.title("New Idea")
@@ -266,51 +302,6 @@ class HomePage(Toplevel):
 
     ###################################################################################################################
 
-    def view(self):
-        view = Toplevel()
-        view.title("View Idea")
-        view.geometry("720x720")
-        view.protocol("WM_DELETE_WINDOW", self.on_exit)
-
-        view.frame = Frame(view)
-        view.frame.pack()
-
-        view.uframe = Frame(view.frame)
-        view.uframe.pack(side=TOP, padx=10, pady=10)
-
-        view.mframe = Frame(view.frame)
-        view.mframe.pack(side=TOP, padx=10, pady=10)
-
-        view.bframe = Frame(view.frame)
-        view.bframe.pack(side=TOP, padx=10, pady=10)
-
-        connect = sqlite3.connect("data.")
-        curs = connect.cursor()
-
-
-        data = curs.execute(f"SELECT ideatext FROM ideas WHERE user='{self.username}' AND ideatime='{self.ideatime}'")
-
-        name = Label(view.uframe, text=f"{self.ideaname}", font=("verdana", 15, "normal"), anchor=W)
-        name.pack(side=LEFT, fill=X, padx=60, pady=10)
-
-        for row in data:
-            view.text = row[0]
-        textview = Message(view.mframe, text=f"{view.text}", font=("verdana", 15, "normal"))
-        textview.pack(side=TOP, fill=X, padx=60, pady=60)
-        connect.commit()
-        connect.close()
-
-        self.value = ""
-        self.two = ""
-        self.ideaname = ""
-        self.ideatime = ""
-
-        close = Button(view.bframe, width=10, text="Close", font=("normal", 15, "normal"), bg="grey", fg="white",
-                       command=lambda: view.destroy())
-        close.pack(side=LEFT, padx=60, pady=10)
-
-    ###################################################################################################################
-
     def deleteit(self):
         time = self.ideatime
         print(time)
@@ -332,7 +323,6 @@ class HomePage(Toplevel):
         answer = tkinter.messagebox.askquestion(title="Logout", message="Are you sure you want to log out?")
         if answer == "yes":
             self.destroy()
-            self.original_frame.show()
 
     ####################################################################################################################
 
@@ -360,7 +350,8 @@ class HomePage(Toplevel):
         connection.commit()
         connection.close()
 
-        self.view()
+        self.viewidea()
+
     ###################################################################################################################
 
     def edit(self):

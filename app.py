@@ -1,19 +1,14 @@
 import tkinter.messagebox
 import tkinter.simpledialog
 import sqlite3
-import homepage as home
-import registration as reg
+
+from homepage import HomePage
+from registration import Registration
 from tkinter import *
-
-########################################################################################################################
-
+from data import create_tables
 
 
-
-########################################################################################################################
-
-
-class Application(object):
+class Application:
     def __init__(self, parent):
         # Initialising the login page
         self.master = parent
@@ -69,28 +64,33 @@ class Application(object):
         self.register.grid(row=2, column=0, sticky=E, padx=0, pady=60)
 
     ####################################################################################################################
-
-    def hide(self):
-        # this functions removes the login window
-        self.master.withdraw()
+    def fetch(self, user):
+        connection = sqlite3.connect("data.db")
+        cursor = connection.cursor()
+        query = "SELECT id FROM users WHERE username=?"
+        details = cursor.execute(query, (user,))
+        data = details.fetchone()
+        result = (int(data[0]), user)
+        connection.close()
+        return result
 
     def start_app(self):
         # this function initialises the homepage window
-        username = self.username.get()
-        password = self.password.get()
+        username = str((self.username.get()).lower())
+        password = str((self.password.get()).lower())
         check = (username, password)
 
         connection = sqlite3.connect("data.db")
         cursor = connection.cursor()
-        connection.commit()
 
         data = cursor.execute("SELECT username, password FROM users")
         for row in data:
             if check == row:
                 tkinter.messagebox.showinfo("Success", "Login Successful!!!")
-                self.hide()
-                next = home.HomePage(self, username)
-                home.HomePage.update_listbox(next)
+                result = self.fetch(username)
+                self.master.withdraw()
+                home = HomePage(*result)
+                HomePage.update_listbox(home)
                 break
 
             else:
@@ -99,7 +99,9 @@ class Application(object):
         connection.close()
 
     def reg(self):
-        reg.Registration(self)
+        self.master.withdraw()
+        create_tables()
+        Registration()
 
     def show(self):
         # this function updates and runs the first window(the login window...i think)
@@ -108,15 +110,8 @@ class Application(object):
         self.password.delete(0, END)
         self.master.deiconify()
 
-###################################################################################################################
-
-
-
-    ###################################################################################################################
-
 
 if __name__ == "__main__":
     root = Tk()
     app = Application(root)
     root.mainloop()
-

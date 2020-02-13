@@ -3,11 +3,11 @@ import tkinter.simpledialog
 import sqlite3
 from datetime import datetime
 from tkinter import *
+from homepage import HomePage
 
 
 class Registration(Toplevel):
-    def __init__(self, original):
-        self.original_frame = original
+    def __init__(self):
         Toplevel.__init__(self)
 
         self.title("Registration Form")
@@ -49,11 +49,21 @@ class Registration(Toplevel):
                         command=self.submit)
         submit.grid(row=3, column=1, sticky=W, padx=60, pady=60)
 
-    def submit(self):
-        testone = str(self.passwordr.get())
-        testtwo = str(self.password2.get())
+    def fetch(self, user):
+        connection = sqlite3.connect("data.db")
+        cursor = connection.cursor()
+        query = "SELECT id FROM users WHERE username=?"
+        details = cursor.execute(query, (user,))
+        data = details.fetchone()
+        result = (int(data[0]), user)
+        connection.close()
+        return result
 
-        if testone == testtwo:
+    def submit(self):
+        one = str(self.passwordr.get())
+        two = str(self.password2.get())
+
+        if one == two:
 
             if tkinter.messagebox.askyesno("Register", "Are you sure you want to register this account"):
                 username = str((self.usernamer.get()).lower())
@@ -63,11 +73,14 @@ class Registration(Toplevel):
                 connection = sqlite3.connect("data.db")
                 cursor = connection.cursor()
 
-                cursor.execute("INSERT INTO users VALUES(?, ?, ?)", (username, password, time))
+                cursor.execute("INSERT INTO users VALUES(NULL, ?, ?, ?)", (username, password, time))
                 connection.commit()
                 connection.close()
+
+                tkinter.messagebox.showinfo("Success", "Registration Successful!")
+                result = self.fetch(username)
                 self.destroy()
-                tkinter.messagebox.showinfo("Success", "Registration Successful! Now login to your account")
+                HomePage(*result)
 
         else:
             tkinter.messagebox.showinfo("Incorrect" "The two passwords did not match, please enter matching passwords")

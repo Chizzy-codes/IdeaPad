@@ -1,12 +1,14 @@
 import sqlite3
 
-connection = sqlite3.connect("data.db")
 
-cursor = connection.cursor()
+def create_tables():
+    connection = sqlite3.connect("data.db")
 
-cursor.execute("CREATE TABLE users(username text primary key, password text, time text)")
+    cursor = connection.cursor()
 
-cursor.execute("CREATE TABLE ideas(user text, ideaname text, ideatext text, ideatime text primary key)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY,  username text, password text, time text)")
 
-connection.commit()
-connection.close()
+    cursor.execute("CREATE TABLE IF NOT EXISTS ideas(id integer, ideaname text, ideatext text, ideatime text)")
+
+    connection.commit()
+    connection.close()

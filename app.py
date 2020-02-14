@@ -76,32 +76,33 @@ class Application:
 
     def start_app(self):
         # this function initialises the homepage window
+        create_tables()
         username = str((self.username.get()).lower())
         password = str((self.password.get()).lower())
         check = (username, password)
+
 
         connection = sqlite3.connect("data.db")
         cursor = connection.cursor()
 
         data = cursor.execute("SELECT username, password FROM users")
-        for row in data:
-            if check == row:
-                tkinter.messagebox.showinfo("Success", "Login Successful!!!")
-                result = self.fetch(username)
-                self.master.withdraw()
-                home = HomePage(*result)
-                HomePage.update_listbox(home)
-                break
+        details = data.fetchall()
+        if check in details:
+            result = self.fetch(username)
+            tkinter.messagebox.showinfo("Success", "Login Successful!!!")
+            self.master.withdraw()
+            home = HomePage(self, *result)
+            HomePage.update_listbox(home)
 
-            else:
-                tkinter.messagebox.showinfo("Failed", "Username or password entered is incorrect. Try again")
+        else:
+            tkinter.messagebox.showinfo("Failed", "Username or password entered is incorrect. Try again")
 
         connection.close()
 
     def reg(self):
         self.master.withdraw()
         create_tables()
-        Registration()
+        Registration(self)
 
     def show(self):
         # this function updates and runs the first window(the login window...i think)

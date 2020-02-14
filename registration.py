@@ -7,10 +7,12 @@ from homepage import HomePage
 
 
 class Registration(Toplevel):
-    def __init__(self):
+    def __init__(self, reg):
+        self.reg = reg
         Toplevel.__init__(self)
 
         self.title("Registration Form")
+        self.protocol("WM_DELETE_WINDOW", self.on_exit)
         self.frame = Frame(self)
         self.frame.pack()
 
@@ -49,7 +51,7 @@ class Registration(Toplevel):
                         command=self.submit)
         submit.grid(row=3, column=1, sticky=W, padx=60, pady=60)
 
-    def fetch(self, user):
+    def fetchdata(self, user):
         connection = sqlite3.connect("data.db")
         cursor = connection.cursor()
         query = "SELECT id FROM users WHERE username=?"
@@ -78,10 +80,14 @@ class Registration(Toplevel):
                 connection.close()
 
                 tkinter.messagebox.showinfo("Success", "Registration Successful!")
-                result = self.fetch(username)
+                result = self.fetchdata(username)
                 self.destroy()
-                HomePage(*result)
+                HomePage(self.reg, *result)
 
         else:
             tkinter.messagebox.showinfo("Incorrect" "The two passwords did not match, please enter matching passwords")
             pass
+
+    def on_exit(self):
+        self.destroy()
+        self.reg.show()
